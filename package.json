@@ -1,0 +1,12 @@
+{
+  "name": "tree-of-maps",
+  "version": "0.1.0",
+  "description": "Map<[K1, K2, ...], V>",
+  "main": "index.js",
+  "author": "Jake Teton-Landis <just.1.jake@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "jest": "^26.4.2"
+  }
+}
