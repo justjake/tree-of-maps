@@ -1,4 +1,28 @@
-class UntypedTreeMap implements Map<unknown[], unknown> {
+/**
+ * Maps from array-keys of a pre-defined length to values.
+ *
+ * In a normal map, array keys would be considered unique unless they are
+ * references to the same object. The advantage of an UntypedFixedDepthTreeMap
+ * over a normal Map<Array, V> is that in an UntypedFixedDepthTreeMap, keys
+ * with the SameValueZero items at each index are equivalent.
+ *
+ * ```
+ * const keys = [1, 2, 3]
+ * const keys2 = [1, 2, 3]
+ * const value = "potato"
+ * const regularMap = new Map()
+ * const treeMap = new UntypedFixedDepthTreeMap(keys.length)
+ *
+ * regularMap.set(keys, value)
+ * regularMap.has(keys2) // -> false
+ * regularMap.get(keys2) // -> undefined
+ *
+ * treeMap.set(keys, value)
+ * treeMap.has(keys2) // -> true
+ * treeMap.get(keys2) // -> "potato"
+ * ```
+ */
+class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
 	private root = new Map<unknown, any>()
 
 	constructor(public keyLength: number) {
@@ -29,11 +53,7 @@ class UntypedTreeMap implements Map<unknown[], unknown> {
 		) => void,
 		thisArg?: any
 	): void {
-		for (const [key, value] of this.depthFirstIterate(
-			[],
-			this.keyLength,
-			this.root
-		)) {
+		for (const [key, value] of this.entries()) {
 			callbackfn.apply(thisArg, [value, key, this])
 		}
 	}
