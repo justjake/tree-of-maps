@@ -1,4 +1,4 @@
-import { FixedDepthTreeMap } from "../RecursiveMap";
+import { FixedDepthTreeMap, KeyConstrainedMap } from "../RecursiveMap";
 
 function exampleKeys(keyLength: number): Array<unknown[]> {
   return [

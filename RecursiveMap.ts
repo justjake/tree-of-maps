@@ -2,8 +2,8 @@
  * Maps from array-keys of a pre-defined length to values.
  *
  * In a normal map, array keys would be considered unique unless they are
- * references to the same object. The advantage of an UntypedFixedDepthTreeMap
- * over a normal Map<Array, V> is that in an UntypedFixedDepthTreeMap, keys
+ * references to the same object. The advantage of a FixedDepthTreeMap
+ * over a normal Map<Array, V> is that in a FixedDepthTreeMap, keys
  * with the SameValueZero items at each index are equivalent.
  *
  * ```
@@ -191,3 +191,38 @@ export class FixedDepthTreeMap<K extends unknown[], V> implements Map<K, V> {
     return key[this.keyLength - 1];
   }
 }
+
+type Last<T extends any[]> = T extends [...infer I, infer L] ? L : never;
+type UntilLast<T extends any[]> = T extends [...infer I, infer L] ? I : never;
+type LastPathEntry<T extends any[]> = T extends [...infer I, infer L] ? [key: I, value: L] : never;
+
+type DeepPaths<T, Depth extends number, counter extends any[] = [0]> = {
+  [K in keyof T]: counter["length"] extends Depth
+    ? [K, T[K]]
+    : [K, ...DeepPaths<T[K], Depth, [0, ...counter]>];
+}[keyof T];
+
+type DeepKey<Shape extends Record<string, any>, Depth extends number> = UntilLast<DeepPaths<Shape, Depth>>
+type DeepValue<Shape extends Record<string, any>, Depth extends number> = Last<DeepPaths<Shape, Depth>>
+type DeepKeyValue<Shape extends Record<string, any>, Depth extends number> = LastPathEntry<DeepPaths<Shape, Depth>>
+
+export class KeyConstrainedMap<Shape extends Record<string, any>, Depth extends number> {
+	map: FixedDepthTreeMap<DeepKey<Shape, Depth>, DeepValue<Shape, Depth>>
+
+	constructor(depth: Depth) {
+		this.map = new FixedDepthTreeMap(depth)
+	}
+
+	set<Path extends DeepPaths<Shape, Depth>>(key: UntilLast<Path>, value: Last<Path>) {
+		return this.map.set(key, value)
+	}
+
+	get<Path extends DeepPaths<Shape, Depth>>(key: UntilLast<Path>): Last<Path> {
+		return this.map.get(key)
+	}
+
+	entries(): IterableIterator<DeepKeyValue<Shape, Depth>> {
+		return this.map.entries() as any
+	}
+}
+
