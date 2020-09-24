@@ -1,4 +1,4 @@
-import { UntypedFixedDepthTreeMap } from "../RecursiveMap";
+import { FixedDepthTreeMap } from "../RecursiveMap";
 
 function exampleKeys(keyLength: number): Array<unknown[]> {
   return [
@@ -37,12 +37,12 @@ describe(trimOrExtendKey, () => {
   });
 });
 
-describe(UntypedFixedDepthTreeMap, () => {
-  let map = new UntypedFixedDepthTreeMap(1);
+describe(FixedDepthTreeMap, () => {
+  let map = new FixedDepthTreeMap(1);
   [1, 2, 3, 4, 10].forEach((keyLength) => {
     describe(`UntypedFixedDepthTreeMap(keyLength: ${keyLength})`, () => {
       beforeEach(() => {
-        map = new UntypedFixedDepthTreeMap(keyLength);
+        map = new FixedDepthTreeMap(keyLength);
       });
 
       describe("get, set", () => {

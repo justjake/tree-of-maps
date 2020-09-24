@@ -22,7 +22,9 @@
  * treeMap.get(keys2) // -> "potato"
  * ```
  */
-export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
+export class FixedDepthTreeMap<K extends unknown[], V> implements Map<K, V> {
+  // Proving the nesting of our maps to the type system internally is
+  // quite cumbersome, so instead we rely on loose types around Map<unknown, any>.
   private root = new Map<unknown, any>();
 
   constructor(public readonly keyLength: number) {
@@ -37,7 +39,7 @@ export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
     this.root.clear();
   }
 
-  delete(key: unknown[]) {
+  delete(key: K): boolean {
     const branch = this.getBranch(key, false);
     if (!branch) {
       return false;
@@ -47,11 +49,7 @@ export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
   }
 
   forEach(
-    callbackfn: (
-      value: unknown,
-      key: unknown[],
-      map: Map<unknown[], unknown>
-    ) => void,
+    callbackfn: (value: V, key: K, map: Map<K, V>) => void,
     thisArg?: any
   ): void {
     for (const [key, value] of this.entries()) {
@@ -59,12 +57,12 @@ export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
     }
   }
 
-  get(key: unknown[]) {
+  get(key: K): V {
     const branch = this.getBranch(key, false);
     return branch && branch.get(this.getLeafKey(key));
   }
 
-  has(key: unknown[]) {
+  has(key: K): boolean {
     const branch = this.getBranch(key, false);
     return Boolean(branch && branch.has(this.getLeafKey(key)));
   }
@@ -74,7 +72,7 @@ export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
     return this;
   }
 
-  get size() {
+  get size(): number {
     if (this.keyLength === 1) {
       return this.root.size;
     }
@@ -92,8 +90,12 @@ export class UntypedFixedDepthTreeMap implements Map<unknown[], unknown> {
 
   // Iterable methods
 
-  entries(): IterableIterator<[unknown[], unknown]> {
-    return this.depthFirstIterate([], this.keyLength, this.root);
+  entries(): IterableIterator<[K, V]> {
+    return this.depthFirstIterate(
+      [],
+      this.keyLength,
+      this.root
+    ) as IterableIterator<[K, V]>;
   }
 
   *keys() {
