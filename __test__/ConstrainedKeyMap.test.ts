@@ -13,12 +13,12 @@ interface CowVal {
 }
 
 type RecordMap = {
+  block: {
+    [key: string]: BlockVal;
+  };
   cow: {
     petName1: CowVal;
     petName2: CowVal;
-  };
-  block: {
-    [key: string]: BlockVal;
   };
   activity: {
     [key: string]: ActivityVal;
@@ -40,7 +40,16 @@ describe(KeyConstrainedMap, () => {
     recordMap.set(["cow", "petName1"], cow);
 
     const block: BlockVal = { type: "block" };
-    recordMap.set(["block", "randomid"], block);
+    recordMap.set(["block", "randomid" as string], block);
+
+    // @ts-expect-error Should not be able to set a cow to a block
+    recordMap.set(["cow", "petName2"], block);
+
+    // @ts-expect-error Should not be able to set a cow to a block when manually specifying key type
+    recordMap.set<["cow", "petName2"], ["block", string]>(
+      ["cow", "petName2"],
+      block
+    );
 
     expect(recordMap.get(["block", "randomid"])).toBe(block);
     expect(recordMap.get(["cow", "petName1"])).toBe(cow);

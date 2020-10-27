@@ -192,8 +192,12 @@ export class FixedDepthTreeMap<K extends unknown[], V> implements Map<K, V> {
   }
 }
 
+type First<T extends any[]> = T extends [infer I, ...infer L] ? I : never;
+type ButFirst<T extends any[]> = T extends [infer I, ...infer L] ? L : never;
+
 type Last<T extends any[]> = T extends [...infer I, infer L] ? L : never;
 type UntilLast<T extends any[]> = T extends [...infer I, infer L] ? I : never;
+
 type LastPathEntry<T extends any[]> = T extends [...infer I, infer L] ? [key: I, value: L] : never;
 
 type DeepPaths<T, Depth extends number, counter extends any[] = [0]> = {
@@ -202,9 +206,46 @@ type DeepPaths<T, Depth extends number, counter extends any[] = [0]> = {
     : [K, ...DeepPaths<T[K], Depth, [0, ...counter]>];
 }[keyof T];
 
+
 type DeepKey<Shape extends Record<string, any>, Depth extends number> = UntilLast<DeepPaths<Shape, Depth>>
 type DeepValue<Shape extends Record<string, any>, Depth extends number> = Last<DeepPaths<Shape, Depth>>
 type DeepKeyValue<Shape extends Record<string, any>, Depth extends number> = LastPathEntry<DeepPaths<Shape, Depth>>
+
+type MatchPrefix<Tuple extends any[], Prefix extends any[]> = Extract<Tuple, [...Prefix, any]>
+
+
+
+interface BlockVal {
+  type: "block";
+}
+
+interface ActivityVal {
+  type: "activity";
+}
+
+interface CowVal {
+  type: "cow";
+}
+
+type RecordMap = {
+  cow: {
+    petName1: CowVal;
+    petName2: CowVal;
+  };
+  block: {
+    [key: string]: BlockVal;
+  };
+  activity: {
+    [key: string]: ActivityVal;
+  };
+  toad: {
+    loveleyToad: CowVal;
+    toadyBlock: BlockVal;
+  };
+};
+
+
+type UnionToIntersection<U> = (U extends any ? (k: U)=>void : never) extends ((k: infer I)=>void) ? I : never
 
 export class KeyConstrainedMap<Shape extends Record<string, any>, Depth extends number> {
 	map: FixedDepthTreeMap<DeepKey<Shape, Depth>, DeepValue<Shape, Depth>>
@@ -213,9 +254,12 @@ export class KeyConstrainedMap<Shape extends Record<string, any>, Depth extends 
 		this.map = new FixedDepthTreeMap(depth)
 	}
 
-	set<Path extends DeepPaths<Shape, Depth>>(key: UntilLast<Path>, value: Last<Path>) {
+	set<K extends DeepKey<Shape, Depth>>(
+    key: K,
+    value: Last<MatchPrefix<DeepPaths<Shape, Depth>, K>>) {
 		return this.map.set(key, value)
 	}
+
 
 	get<Path extends DeepPaths<Shape, Depth>>(key: UntilLast<Path>): Last<Path> {
 		return this.map.get(key)
@@ -225,4 +269,3 @@ export class KeyConstrainedMap<Shape extends Record<string, any>, Depth extends 
 		return this.map.entries() as any
 	}
 }
-
